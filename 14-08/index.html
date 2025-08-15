@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Aula</title>
+        <link rel="stylesheet" href="style.css" />
+    </head>
+    <body>
+        <button class="btn-alert">Alerta</button>
+
+        <form class="question" data-order="1">
+            <label for="name">Nome</label>
+            <input type="text" name="name" id="name" placeholder="Diga seu nome..." required />
+            <label for="age">Idade</label>
+            <input type="number" name="age" id="age" placeholder="Diga sua idade..." required />
+            <button type="submit">Enviar</button>
+            <output data-out="1"></output>
+        </form>
+
+        <form class="question" data-order="2">
+            <label for="numberOne">Primeiro Numero</label>
+            <input type="number" name="numberOne" id="number-one" required />
+            <label for="numberTwo">Segundo Numero</label>
+            <input type="number" name="numberTwo" id="number-two" required />
+            <button type="submit">Enviar</button>
+            <output data-out="2"></output>
+        </form>
+        <script src="script.js"></script>
+    </body>
+</html>
