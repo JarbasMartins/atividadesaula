@@ -89,9 +89,9 @@ for (let key in livro) {
 
 // 8
 
-const btn = document.querySelector("button");
+const btnAlert = document.querySelector(".btn-alert");
 
-btn.addEventListener("click", () => alert("Clicou"));
+btnAlert.addEventListener("click", () => alert("Clicou"));
 
 // 9
 
