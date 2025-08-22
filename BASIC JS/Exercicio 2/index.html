@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Aula 2</title>
+        <link rel="stylesheet" href="style.css" />
+    </head>
+    <body>
+        <fieldset>
+            <legend>Entradas</legend>
+            <div class="row">
+                <div>
+                    <label for="numeroA"></label>
+                    <input id="numberA" type="number" name="number" placeholder="Ex: 12.5" />
+                </div>
+                <div>
+                    <label for="numberB"></label>
+                    <input type="number" name="numberB" id="numberB" placeholder="Ex: 3" />
+                </div>
+            </div>
+        </fieldset>
+
+        <label for="operacao">Operações</label>
+        <select id="operacao">
+            <option value="todas">Todas</option>
+            <option value="soma">Soma</option>
+            <option value="sub">Subtração</option>
+            <option value="mul">Multiplicação</option>
+            <option value="div">Divisão</option>
+            <option value="resto">Resto (%)</option>
+        </select>
+
+        <div class="actions">
+            <button id="calcular">Calcular</button>
+            <button id="limpar">Limpar</button>
+        </div>
+
+        <h3>Resultado</h3>
+        <div id="resultado">Preencha os numeros e selecione a operação.</div>
+        <script src="script.js"></script>
+    </body>
+</html>
