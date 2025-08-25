@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Aula 1</title>
+        <style>
+            body {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 100vh;
+                overflow: hidden;
+                background-color: rgb(252, 236, 207);
+            }
+
+            button {
+                border: none;
+                height: 50px;
+                width: 200px;
+                background-color: rgb(55, 61, 236);
+                color: white;
+                border-radius: 16px;
+                font-weight: bolder;
+                cursor: pointer;
+            }
+        </style>
+    </head>
+    <body>
+        <button>Clique</button>
+
+        <script>
+            const button = document.querySelector("button");
+
+            button.addEventListener("click", (e) => {
+                e.preventDefault();
+                alert("Clicou");
+            });
+        </script>
+    </body>
+</html>

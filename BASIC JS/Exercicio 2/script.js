@@ -5,8 +5,8 @@ const result = document.querySelector("#resultado");
 const btnCalculate = document.querySelector("#calcular");
 const btnClear = document.querySelector("#limpar");
 
-const parseNumber = () => {
-    Number(input.value.trim());
+const getValue = (input) => {
+    return Number(input.value.trim());
 };
 
 const isNumberValid = (n) => {
@@ -18,12 +18,17 @@ const formatNumber = (n) => {
 };
 
 function calculate() {
-    const a = parseNumber(numberA);
-    const b = parseNumber(numberB);
+    if (numberA.value.trim() === "" || numberB.value.trim() === "") {
+        result.innerHTML = "<span class='error'>Insira os valores.</span>";
+        return;
+    }
+
+    const a = getValue(numberA);
+    const b = getValue(numberB);
     const op = operation.value;
 
-    if (!a || !b || !isNumberValid(a) || !isNumberValid(b)) {
-        result.innerHTML = "<span class='error'>Entrada inváldia.</span>";
+    if (!isNumberValid(a) || !isNumberValid(b)) {
+        result.innerHTML = "<span class='error'>Entrada inválida.</span>";
         return;
     }
 
@@ -32,37 +37,35 @@ function calculate() {
     const soma = a + b;
     const sub = a - b;
     const mul = a * b;
-    const div = b === 0 ? "Não é possivel dividir por zero" : formatNumber(a / b);
-    const mod = b === 0 ? "Indefinido" : formatNumber(a % b);
+    const div = b === 0 ? "Não é possivel dividir por zero" : a / b;
+    const mod = b === 0 ? "Indefinido" : a % b;
 
     switch (op) {
-        case soma:
+        case "soma":
             results.push(`Soma: ${formatNumber(a)} + ${formatNumber(b)} = ${formatNumber(soma)}`);
             break;
 
-        case sub:
+        case "sub":
             results.push(`Subtração: ${formatNumber(a)} - ${formatNumber(b)} = ${formatNumber(sub)}`);
             break;
 
-        case mul:
+        case "mul":
             results.push(`Multiplicação: ${formatNumber(a)} x ${formatNumber(b)} = ${formatNumber(mul)}`);
             break;
 
-        case div:
+        case "div":
             results.push(`Divisão: ${formatNumber(a)} / ${formatNumber(b)} = ${formatNumber(div)}`);
             break;
 
-        case mod:
+        case "mod":
             results.push(`Resto: ${formatNumber(a)} % ${formatNumber(b)} = ${formatNumber(mod)}`);
             break;
-
-        case todas:
+        case "all":
             results.push(`Soma: ${formatNumber(a)} + ${formatNumber(b)} = ${formatNumber(soma)}`);
             results.push(`Subtração: ${formatNumber(a)} - ${formatNumber(b)} = ${formatNumber(sub)}`);
             results.push(`Multiplicação: ${formatNumber(a)} x ${formatNumber(b)} = ${formatNumber(mul)}`);
             results.push(`Divisão: ${formatNumber(a)} / ${formatNumber(b)} = ${formatNumber(div)}`);
-            results.push(`Resto: ${formatNumber(a)} % ${formatNumber(b)} = ${formatNumber(resto)}`);
-            break;
+            results.push(`Resto: ${formatNumber(a)} % ${formatNumber(b)} = ${formatNumber(mod)}`);
     }
 
     result.textContent = results.join("\n");
@@ -71,4 +74,16 @@ function calculate() {
 btnCalculate.addEventListener("click", (e) => {
     e.preventDefault();
     calculate();
+});
+
+function clear() {
+    numberA.value = "";
+    numberB.value = "";
+    operation.value = "all";
+    result.textContent = "Preencha os numeros e selecione a operação.";
+}
+
+btnClear.addEventListener("click", (e) => {
+    e.preventDefault();
+    clear();
 });

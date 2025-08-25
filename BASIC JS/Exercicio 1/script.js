@@ -1,7 +1,3 @@
-function clearForm(form) {
-    form.querySelectorAll("input").forEach((input) => (input.value = ""));
-}
-
 // 1
 
 const question = document.querySelector(".question");
@@ -17,7 +13,7 @@ function userInfo(e) {
         return;
     }
     output.textContent = `Nome: ${userName} \nIdade: ${userAge}`;
-    clearForm(question);
+    question.reset();
 }
 
 question.addEventListener("submit", userInfo);
