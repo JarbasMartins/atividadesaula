@@ -16,7 +16,11 @@ export const cpfSchema = z
 
 export const registerSchema = z
     .object({
-        fullname: z.string().min(2, "O nome completo deve ter pelo menos 2 caracteres."),
+        username: z
+            .string()
+            .min(5, "O nome deve ter pelo mneos 5 caracteres.")
+            .max(15, "O tamanho máximo do nome de usuário são 15 caracteres."),
+        fullname: z.string().min(10, "O nome completo deve ter pelo menos 10 caracteres.").max(100),
         email: z.email({ message: "O e-mail deve ser válido." }),
         cpf: cpfSchema,
         password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres."),

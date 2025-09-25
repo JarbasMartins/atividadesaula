@@ -2,8 +2,9 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { loginSchema, LoginSchemaType } from "../SchemaZod";
+import { loginSchema, LoginSchemaType } from "../../schema/SchemaUser";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
     const {
@@ -14,6 +15,8 @@ export default function LoginPage() {
     } = useForm<LoginSchemaType>({
         resolver: zodResolver(loginSchema),
     });
+
+    const router = useRouter();
 
     const ErrorMessage = ({ name }: { name: keyof LoginSchemaType }) =>
         errors[name] && <p className="mt-1 text-sm text-red-500">{errors[name]?.message}</p>;
@@ -27,7 +30,7 @@ export default function LoginPage() {
 
         if (parsedUser.email === data.email && parsedUser.password === data.password) {
             localStorage.setItem("isLoggedIn", "true");
-            window.location.href = "/";
+            router.push("/");
         } else {
             setError("password", { type: "manual", message: "Email ou senha inválidos" });
             return;

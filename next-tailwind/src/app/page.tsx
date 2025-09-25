@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { v4 as uuid } from "uuid";
 import Modal from "@/components/Modal";
 import ModalTask from "@/components/ModalTask";
+import { useRouter } from "next/navigation";
 
 type Theme = "light" | "dark";
 type Status = "TODO" | "doing" | "done";
@@ -16,6 +17,13 @@ export type Task = {
     createdAt: number;
 };
 
+type User = {
+    email: string;
+    cpf: string;
+    username: string;
+    fullname: string;
+};
+
 type Filter = "all" | "open" | "done";
 
 const STORAGE_KEY = "taskboard:v1";
@@ -25,25 +33,38 @@ export default function Home() {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [query, setQuery] = useState("");
     const [filter, setFilter] = useState<Filter>("all");
-    const [firstName, setName] = useState<string | null>(null);
     const [isOpen, setIsOpen] = useState(false);
-    const [user, setUser] = useState<{ fullname?: string; email?: string; cpf?: string } | null>(null);
     const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
     const [editingTask, setEditingTask] = useState<Task | null>(null);
     const [taskStatus, setTaskStatus] = useState<Status>("TODO");
+    const [user, setUser] = useState<User | null>(null);
+
+    const router = useRouter();
 
     useEffect(() => {
         const savedUser = localStorage.getItem("user");
         if (!savedUser) return;
+
         try {
             const parsedUser = JSON.parse(savedUser);
             setUser(parsedUser);
-            const name = parsedUser.fullname || "";
-            setName(name.split(" ")[0]);
         } catch (error) {
             console.error("Erro ao buscar usuário:", error);
         }
     }, [isOpen]);
+
+    function handleLogout() {
+        localStorage.removeItem("isLoggedIn");
+        router.push("/login");
+    }
+
+    function formatCPF(cpf: string): string {
+        const digits = cpf.replace(/\D/g, "");
+        if (digits.length === 11) {
+            return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+        }
+        return cpf;
+    }
 
     useEffect(() => {
         const raw = localStorage.getItem(STORAGE_KEY);
@@ -60,19 +81,6 @@ export default function Home() {
         const isLoggedIn = localStorage.getItem("isLoggedIn");
         if (!isLoggedIn) window.location.href = "/login";
     }, []);
-
-    function handleLogout() {
-        localStorage.removeItem("isLoggedIn");
-        window.location.href = "/login";
-    }
-
-    function formatCPF(cpf: string): string {
-        const digits = cpf.replace(/\D/g, "");
-        if (digits.length === 11) {
-            return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
-        }
-        return cpf;
-    }
 
     useEffect(() => {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
@@ -290,7 +298,7 @@ export default function Home() {
                         <div className="flex gap-2 items-center justify-center bg-zinc-200 dark:bg-zinc-300 dark:text-black p-1 rounded-lg">
                             <img src="/user-svgrepo-com.svg" alt="Icon User" className="h-8  p-2 rounded-full" />
                             <p className="text-sm">
-                                {firstName ? `Bem vindo, ${firstName}!` : `Bem vindo ao Mini-Trello!`}
+                                {user?.username ? `Bem vindo, ${user?.username}!` : `Bem vindo ao Mini-Trello!`}
                             </p>
                             <img
                                 src="/arrow-down-svgrepo-com.svg"

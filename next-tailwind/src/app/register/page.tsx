@@ -2,7 +2,8 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { registerSchema, RegisterSchemaType } from "../SchemaZod";
+import { registerSchema, RegisterSchemaType } from "../../schema/SchemaUser";
+import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
     const {
@@ -13,9 +14,11 @@ export default function RegisterPage() {
         resolver: zodResolver(registerSchema),
     });
 
+    const router = useRouter();
+
     const onSubmit = (data: RegisterSchemaType) => {
         localStorage.setItem("user", JSON.stringify(data));
-        window.location.href = "/login";
+        router.push("/login");
     };
 
     const ErrorMessage = ({ name }: { name: keyof RegisterSchemaType }) =>
@@ -32,11 +35,24 @@ export default function RegisterPage() {
                 <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
                     <div className="flex flex-col">
                         <label htmlFor="fullname" className="text-sm font-medium text-gray-600">
-                            Nome
+                            Nome de Usuário
                         </label>
                         <input
                             type="text"
-                            placeholder="Digite seu nome"
+                            placeholder="Digite seu nome de usuário"
+                            {...register("username")}
+                            className={`input-style ${errors.fullname ? "border-red-500" : ""}`}
+                        />
+                        <ErrorMessage name="username" />
+                    </div>
+
+                    <div className="flex flex-col">
+                        <label htmlFor="fullname" className="text-sm font-medium text-gray-600">
+                            Nome Completo
+                        </label>
+                        <input
+                            type="text"
+                            placeholder="Digite seu nome completo"
                             {...register("fullname")}
                             className={`input-style ${errors.fullname ? "border-red-500" : ""}`}
                         />
