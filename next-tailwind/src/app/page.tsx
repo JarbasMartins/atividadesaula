@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { v4 as uuid } from "uuid";
+import Modal from "@/components/Modal";
+import ModalTask from "@/components/ModalTask";
 
 type Theme = "light" | "dark";
 type Status = "TODO" | "doing" | "done";
@@ -23,25 +25,54 @@ export default function Home() {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [query, setQuery] = useState("");
     const [filter, setFilter] = useState<Filter>("all");
-    const [loading, setLoading] = useState(false);
+    const [firstName, setName] = useState<string | null>(null);
+    const [isOpen, setIsOpen] = useState(false);
+    const [user, setUser] = useState<{ fullname?: string; email?: string; cpf?: string } | null>(null);
+    const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+    const [editingTask, setEditingTask] = useState<Task | null>(null);
+    const [taskStatus, setTaskStatus] = useState<Status>("TODO");
 
     useEffect(() => {
+        const savedUser = localStorage.getItem("user");
+        if (!savedUser) return;
         try {
-            const raw = localStorage.getItem(STORAGE_KEY);
-            if (raw) {
-                const parsed: Task[] = JSON.parse(raw);
-                setTasks(parsed);
-            } else {
-                setTasks([
-                    { id: uuid(), title: "Explorar requisitos", status: "TODO", done: false, createdAt: Date.now() },
-                    { id: uuid(), title: "Criar layout base", status: "doing", done: false, createdAt: Date.now() },
-                    { id: uuid(), title: "Configurar Tailwind", status: "done", done: true, createdAt: Date.now() },
-                ]);
-            }
+            const parsedUser = JSON.parse(savedUser);
+            setUser(parsedUser);
+            const name = parsedUser.fullname || "";
+            setName(name.split(" ")[0]);
         } catch (error) {
-            throw error;
+            console.error("Erro ao buscar usuário:", error);
         }
+    }, [isOpen]);
+
+    useEffect(() => {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) setTasks(JSON.parse(raw));
+        else
+            setTasks([
+                { id: uuid(), title: "Explorar requisitos", status: "TODO", done: false, createdAt: Date.now() },
+                { id: uuid(), title: "Criar layout base", status: "doing", done: false, createdAt: Date.now() },
+                { id: uuid(), title: "Configurar Tailwind", status: "done", done: true, createdAt: Date.now() },
+            ]);
     }, []);
+
+    useEffect(() => {
+        const isLoggedIn = localStorage.getItem("isLoggedIn");
+        if (!isLoggedIn) window.location.href = "/login";
+    }, []);
+
+    function handleLogout() {
+        localStorage.removeItem("isLoggedIn");
+        window.location.href = "/login";
+    }
+
+    function formatCPF(cpf: string): string {
+        const digits = cpf.replace(/\D/g, "");
+        if (digits.length === 11) {
+            return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+        }
+        return cpf;
+    }
 
     useEffect(() => {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
@@ -49,20 +80,21 @@ export default function Home() {
 
     useEffect(() => {
         const root = document.documentElement;
-        if (theme === "dark") root.classList.add("dark");
-        else root.classList.remove("dark");
+        theme === "dark" ? root.classList.add("dark") : root.classList.remove("dark");
     }, [theme]);
 
     const addTask = (title: string, status: Status = "TODO") => {
-        if (!title.trim()) return;
         setTasks((prev) => [
             { id: uuid(), title: title.trim(), status, done: status === "done", createdAt: Date.now() },
             ...prev,
         ]);
+        setIsTaskModalOpen(false);
     };
 
     const updateTask = (id: string, patch: Partial<Task>) => {
         setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
+        setIsTaskModalOpen(false);
+        setEditingTask(null);
     };
 
     const deleteTask = (id: string) => {
@@ -122,8 +154,12 @@ export default function Home() {
                     </h2>
 
                     <button
-                        onClick={() => addTask(prompt(`Nova tarefa em ${title}`) || "", status)}
-                        className="text-sm cursor-pointer px-2 py-1 rounded-lg border border-zinc-300 dark:border-zinc-600 hover:bg-zinc-100 dark:hover:bg-zinc-700"
+                        onClick={() => {
+                            setTaskStatus(status);
+                            setEditingTask(null);
+                            setIsTaskModalOpen(true);
+                        }}
+                        className="px-3 py-2 text-sm rounded-xl border cursor-pointer border-emerald-300 dark:border-emerald-700 bg-emerald-500/10 hover:bg-emerald-500/20"
                     >
                         +
                     </button>
@@ -167,8 +203,9 @@ export default function Home() {
                                     <div className="mt-2 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">
                                         <button
                                             onClick={() => {
-                                                const t = prompt("Editar título", task.title);
-                                                if (t !== null) updateTask(task.id, { title: t });
+                                                setTaskStatus(task.status);
+                                                setEditingTask(task);
+                                                setIsTaskModalOpen(true);
                                             }}
                                             className={`text-xs cursor-pointer px-2 py-1 rounded border border-zinc-300 dark:border-zinc-600 ${
                                                 task.done ? "hidden" : "cursor-pointer"
@@ -198,7 +235,21 @@ export default function Home() {
     };
 
     return (
-        <div className="min-h-screen bg-[#E5E4E2] dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">
+        <div className="min-h-screen bg-[#eae9e8] dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">
+            <ModalTask
+                isOpen={isTaskModalOpen}
+                onClose={() => {
+                    setIsTaskModalOpen(false);
+                    setEditingTask(null);
+                }}
+                status={taskStatus}
+                onSave={(title) => {
+                    if (editingTask) updateTask(editingTask.id, { title });
+                    else addTask(title, taskStatus);
+                }}
+                initialTitle={editingTask?.title}
+            />
+
             <header className="sticky top-0 z-10 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-zinc-900/60 bg-white/95 dark:bg-zinc-900/95 border-b border-zinc-200 dark:border-zinc-800">
                 <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
                     <h1 className="text-2xl font-base flex flex-col">Mini Trello</h1>
@@ -207,12 +258,12 @@ export default function Home() {
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             placeholder="Buscar tarefas..."
-                            className="px-3 py-2 text-sm rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 w-56"
+                            className="hidden sm:block px-3 py-2 text-sm rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 w-56"
                         />
                         <select
                             value={filter}
                             onChange={(e) => setFilter(e.target.value as Filter)}
-                            className="px-3 py-2 text-sm rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"
+                            className="hidden sm:block px-3 py-2 text-sm rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"
                             title="Filtro"
                         >
                             <option value="all">Todas</option>
@@ -228,13 +279,43 @@ export default function Home() {
                         </button>
                         <button
                             onClick={() => {
-                                const t = prompt("Título da nova tarefa");
-                                if (t) addTask(t);
+                                setEditingTask(null);
+                                setTaskStatus("TODO");
+                                setIsTaskModalOpen(true);
                             }}
                             className="px-3 py-2 text-sm rounded-xl border cursor-pointer border-emerald-300 dark:border-emerald-700 bg-emerald-500/10 hover:bg-emerald-500/20"
                         >
                             + Nova
                         </button>
+                        <div className="flex gap-2 items-center justify-center bg-zinc-200 dark:bg-zinc-300 dark:text-black p-1 rounded-lg">
+                            <img src="/user-svgrepo-com.svg" alt="Icon User" className="h-8  p-2 rounded-full" />
+                            <p className="text-sm">
+                                {firstName ? `Bem vindo, ${firstName}!` : `Bem vindo ao Mini-Trello!`}
+                            </p>
+                            <img
+                                src="/arrow-down-svgrepo-com.svg"
+                                alt="Icon Arrow Down"
+                                className="h-8 cursor-pointer"
+                                onClick={() => setIsOpen(true)}
+                            />
+                            <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title="Menu">
+                                <div className="text-zinc-600 text-sm">
+                                    Nome: <span className="text-black">{user?.fullname || "Empty"}</span>
+                                </div>
+                                <div className="text-zinc-600 text-sm mt-2">
+                                    Email: <span className="text-black">{user?.email || "Empty"}</span>
+                                </div>
+                                <div className="text-zinc-600 text-sm mt-2">
+                                    CPF: <span className="text-black">{user?.cpf ? formatCPF(user.cpf) : "Empty"}</span>
+                                </div>
+                                <button
+                                    className="mt-4 px-4 py-1 w-full cursor-pointer bg-red-500 hover:bg-red-600 text-white rounded"
+                                    onClick={handleLogout}
+                                >
+                                    SAIR
+                                </button>
+                            </Modal>
+                        </div>
                     </div>
                 </div>
             </header>
